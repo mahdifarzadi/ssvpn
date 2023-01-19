@@ -29,27 +29,27 @@ TELEGRAM_TOKEN=INVALID
 
 function help {
     cat <<EOF
-help
+-i,--install              INSTALL_DEP=true
+-s, --ss-server           JUST_SS=true
+-h, --server-host         SERVER_HOST=$2
+-p, --server-port         SERVER_PORT=$2
+-a, --server-address      SERVER_ADDRESS=$2
+-k, --server-password     SERVER_PASSWORD=$2
+-m, --encrypt-method      SERVER_ENC_METHOD=$2
+-H, --manager-host        MANAGER_HOST=$2
+-P, --manager-port        MANAGER_PORT=$2
+-A, --manager-address     MANAGER_ADDRESS=$2
+-K, --manager-password    MANAGER_PASSWORD=$2
+-t, --telegram            USE_TELEGRAM=true, TELEGRAM_TOKEN=$2
+--v2ray-version           V2RAY_VERSION=$2
+--plugin                  SERVER_PLUGIN=$2
+--ip                      SERVER_IP=$2
+--help                    Help
 EOF
     exit 0
 }
 
-# -i,--install              INSTALL_DEP=true
-# -s, --ss-server           JUST_SS=true
-# -h, --server-host         SERVER_HOST=$2
-# -p, --server-port         SERVER_PORT=$2
-# -a, --server-address      SERVER_ADDRESS=$2
-# -k, --server-password     SERVER_PASSWORD=$2
-# -m, --encrypt-method      SERVER_ENC_METHOD=$2
-# -H, --manager-host        MANAGER_HOST=$2
-# -P, --manager-port        MANAGER_PORT=$2
-# -A, --manager-address     MANAGER_ADDRESS=$2
-# -K, --manager-password    MANAGER_PASSWORD=$2
-# -t, --telegram            USE_TELEGRAM=true, TELEGRAM_TOKEN=$2
-# --v2ray-version           V2RAY_VERSION=$2
-# --plugin                  SERVER_PLUGIN=$2
-# --ip                      SERVER_IP=$2
-# --help                    Help
+
 
 TEMP=$(
     getopt -o ish:p:a:k:m:H:P:A:K:t: \
@@ -138,11 +138,6 @@ while true; do
     esac
 done
 
-echo $INSTALL_DEP
-echo $SERVER_HOST
-echo $SERVER_PLUGIN
-echo $SERVER_IP
-
 if $INSTALL_DEP; then
     ###
     # install dependencies
@@ -213,7 +208,7 @@ WantedBy=multi-user.target
 EOF
 
     # create ssmgr config file
-    cat <<EOF >~/.ssmgr/ssmgr.yml
+    cat <<EOF >/root/.ssmgr/ssmgr.yml
 type: s
 
 shadowsocks:
