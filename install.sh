@@ -1,11 +1,23 @@
 #!/bin/bash
 
-USE_MANAGER=true
-
+# vars
 V2RAY_VERSION=v1.3.2
-MANAGER_HOST=127.0.0.1
-MANAGER_PORT=6000
 
+SERVER_HOST=0.0.0.0
+SERVER_PORT=443
+SERVER_ADDRESS=$SERVER_HOST:$SERVER_PORT # can be unix socket
+SERVER_PASSWORD=VERYVERYSTRONGPASS
+SERVER_ENC_METHOD=chacha20-ietf-poly1305
+SERVER_PLUGIN=v2ray-plugin
+
+SERVER_IP=$(hostname -I | awk '{print $1}')
+
+MANAGER_HOST=0.0.0.0
+MANAGER_PORT=4000
+MANAGER_ADDRESS=$MANAGER_HOST:$MANAGER_PORT
+MANAGER_PASSWORD=VERYVERYSTRONGPASSFORMANAGER
+
+TELEGRAM_TOKEN=INVALID
 
 # TODO add flags
 
@@ -19,11 +31,11 @@ apt update
 apt install shadowsocks-libev -y
 
 # install v2ray-plugin
-wget https://github.com/shadowsocks/v2ray-plugin/releases/download/{$V2RAY_VERSION}/v2ray-plugin-linux-amd64-{$V2RAY_VERSION}.tar.gz
-tar -xzf v2ray-plugin-linux-amd64-{$V2RAY_VERSION}.tar.gz
+wget https://github.com/shadowsocks/v2ray-plugin/releases/download/$V2RAY_VERSION/v2ray-plugin-linux-amd64-$V2RAY_VERSION.tar.gz
+tar -xzf v2ray-plugin-linux-amd64-$V2RAY_VERSION.tar.gz
 mv v2ray-plugin_linux_amd64 /usr/local/bin/v2ray-plugin
 chmod +x /usr/local/bin/v2ray-plugin
-rm v2ray-plugin-linux-amd64-{$V2RAY_VERSION}.tar.gz
+rm v2ray-plugin-linux-amd64-$V2RAY_VERSION.tar.gz
 
 # install nodejs
 apt install nodejs -y
@@ -44,20 +56,20 @@ npm i -g shadowsocks-manager --unsafe-perm
 systemctl stop shadowsocks-libev.service && systemctl disable shadowsocks-libev.service
 
 # TODO remove ?
-# # create ss-server service
-# cat << EOF > /etc/systemd/system/ss-server.service
-# [Unit]
-# Description=Daemon to Shadowsocks Server
-# Wants=network-online.target
-# After=network.target
+# create ss-server service
+cat << EOF > /etc/systemd/system/ss-server.service
+[Unit]
+Description=Daemon to Shadowsocks Server
+Wants=network-online.target
+After=network.target
 
-# [Service]
-# Type=simple
-# ExecStart=/usr/bin/ss-server -s 0.0.0.0 -p 6000 -k ${PASSWORD:-test} -m aes-256-gcm -u --plugin v2ray-plugin --plugin-opts "server"
+[Service]
+Type=simple
+ExecStart=/usr/bin/ss-server -s $SERVER_HOST -p $SERVER_PORT -k $SERVER_PASSWORD -m $SERVER_ENC_METHOD -u --plugin $SERVER_PLUGIN --plugin-opts "server"
 
-# [Install]
-# WantedBy=multi-user.target
-# EOF
+[Install]
+WantedBy=multi-user.target
+EOF
 
 # TODO use unix socket
 # create ss-manager service
@@ -69,7 +81,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/ss-manager -m aes-256-gcm -u --plugin v2ray-plugin --plugin-opts "server" --manager-address 127.0.0.1:6000
+ExecStart=/usr/bin/ss-manager -m $SERVER_ENC_METHOD -u --plugin $SERVER_PLUGIN --plugin-opts "server" --manager-address $SERVER_ADDRESS
 
 [Install]
 WantedBy=multi-user.target
@@ -80,10 +92,10 @@ cat << EOF > ~/.ssmgr/ssmgr.yml
 type: s
 
 shadowsocks:
-  address: 127.0.0.1:6000
+  address: $SERVER_ADDRESS
 manager:
-  address: 0.0.0.0:4001
-  password: 'feri'
+  address: $MANAGER_ADDRESS
+  password: $MANAGER_PASSWORD
 db: 'ssmgr.sqlite'
 EOF
 
@@ -108,12 +120,12 @@ cat << EOF > ~/.ssmgr/ssmgr-tel.yml
 type: m
 
 manager:
-  address: 141.94.55.134:4001
-  password: 'feri'
+  address: $SERVER_IP:$MANAGER_PORT
+  password: $MANAGER_PASSWORD
 
 plugins:
   telegram:
-    token: '5891247135:AAF7npye_YeqSC7pEwtSpSHUqdS0Yp5f_nc'
+    token: $TELEGRAM_TOKEN
     use: true
 db: 'tel.sqlite'
 EOF
