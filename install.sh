@@ -241,7 +241,7 @@ EOF
 
     if $USE_TELEGRAM; then
         # create ssmgr-tel config file
-        cat <<EOF >~/.ssmgr/ssmgr-tel.yml
+        cat <<EOF >/root/.ssmgr/ssmgr-tel.yml
 type: m
 
 manager:
