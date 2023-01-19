@@ -91,7 +91,7 @@ while true; do
         shift 2
         ;;
     -m | --encrypt-method)
-        SERVER_HOST="$2"
+        SERVER_ENC_METHOD="$2"
         shift 2
         ;;
     -H | --manager-host)
@@ -193,6 +193,7 @@ EOF
 
 else
     # create ss-manager service
+    # TODO add -k (password)
     cat <<EOF >/etc/systemd/system/ss-manager.service
 [Unit]
 Description=Daemon to Shadowsocks Manager
