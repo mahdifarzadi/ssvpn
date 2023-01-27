@@ -98,10 +98,12 @@ while true; do
         ;;
     -H | --manager-host)
         MANAGER_HOST="$2"
+        MANAGER_ADDRESS=$MANAGER_HOST:$MANAGER_PORT
         shift 2
         ;;
     -P | --manager-port)
         MANAGER_PORT="$2"
+        MANAGER_ADDRESS=$MANAGER_HOST:$MANAGER_PORT
         shift 2
         ;;
     -A | --manager-address)
