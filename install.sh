@@ -20,8 +20,12 @@ MANAGER_PORT=4000
 MANAGER_ADDRESS=$MANAGER_HOST:$MANAGER_PORT
 MANAGER_PASSWORD=VERYVERYSTRONGPASSFORMANAGER
 
+SS_MANAGER_PATH=/root/shadowsocks-manager
+
 USE_TELEGRAM=false
 TELEGRAM_TOKEN=INVALID
+
+USE_WEB=false
 
 ###
 # read flags
@@ -49,11 +53,9 @@ EOF
     exit 0
 }
 
-
-
 TEMP=$(
-    getopt -o ish:p:a:k:m:H:P:A:K:t: \
-        --long install,ss-server,server-host:,server-port:,server-address:,server-password:,encrypt-method:,manager-host:,manager-port:,manager-address:,manager-password:,telegram:,v2ray-version:,plugin:,ip:,help \
+    getopt -o ish:p:a:k:m:H:P:A:K:t:w \
+        --long install,ss-server,server-host:,server-port:,server-address:,server-password:,encrypt-method:,manager-host:,manager-port:,manager-address:,manager-password:,telegram:,web,v2ray-version:,plugin:,ip:,help \
         -n 'javawrap' -- "$@"
 )
 
@@ -115,6 +117,10 @@ while true; do
         TELEGRAM_TOKEN="$2"
         shift 2
         ;;
+    -w | --web)
+        USE_WEB=true
+        shift
+        ;;
     --v2ray-version)
         V2RAY_VERSION="$2"
         shift 2
@@ -166,6 +172,13 @@ if $INSTALL_DEP; then
 
     # install shadowsocks-manager
     npm i -g shadowsocks-manager --unsafe-perm
+
+    # install customized ssmgr for webgui
+    git clone https://github.com/mahdifarzadi/shadowsocks-manager.git
+    cd shadowsocks-manager
+    npm i
+    npm run build
+    SS_MANAGER_PATH = $(pwd)
 fi
 
 ###
@@ -202,7 +215,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/ss-manager -m $SERVER_ENC_METHOD -u --plugin $SERVER_PLUGIN --plugin-opts "server" --manager-address $SERVER_ADDRESS
+ExecStart=/usr/bin/ss-manager -m $SERVER_ENC_METHOD -u --plugin $SERVER_PLUGIN --plugin-opts "server" --manager-address $SERVER_ADDRESS -k $MANAGER_PASSWORD
 
 [Install]
 WantedBy=multi-user.target
@@ -275,5 +288,64 @@ EOF
         systemctl daemon-reload
         systemctl enable ssmgr-tel.service
         systemctl restart ssmgr-tel.service
+    fi
+
+    if $USE_WEB; then
+        # create ssmgr-web config file
+        cat <<EOF >/root/.ssmgr/ssmgr-web.yml
+type: m
+
+manager:
+  address: $SERVER_IP:$MANAGER_PORT
+  password: $MANAGER_PASSWORD
+
+plugins:
+  flowSaver:
+    use: true
+  user:
+    use: true
+  account:
+    use: true
+  macAccount:
+    use: true
+  group:
+    use: true
+  email:
+    use: true
+    type: 'mailgun'
+    apiKey: 'e3d7b34cddf4187d1aba213aee88859e-2de3d545-cd1d4f89'
+    baseUrl: 'https://api.mailgun.net/v3/sandbox777af2ff8ac343ce9d98dc26ff8f1e65.mailgun.org/messages'
+  webgui:
+    use: true
+    host: '0.0.0.0'
+    port: '3030'
+    site: 'http://yourwebsite.com'
+    language: 'en-US'
+  # webgui_telegram:
+  #  use: true
+  #  token: '5951069517:AAHg8id5Qb6s2c271FjLuYpcFBgvwSL0FHY'
+
+db: 'web.sqlite'
+EOF
+
+        # create web ssmgr service
+        cat <<EOF >/etc/systemd/system/ssmgr-web.service
+[Unit]
+Description=Daemon to ssmgr type m for webgui
+Wants=network-online.target
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=cd $SS_MANAGER_PATH && node server.js -c /root/.ssmgr/ssmgr-web.yml
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+        # enable and run services
+        systemctl daemon-reload
+        systemctl enable ssmgr-web.service
+        systemctl restart ssmgr-web.service
     fi
 fi
