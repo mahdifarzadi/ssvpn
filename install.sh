@@ -319,11 +319,10 @@ plugins:
     use: true
     host: '0.0.0.0'
     port: '3030'
-    site: 'http://yourwebsite.com'
+    site: 'http://mywebsite.com'
     language: 'en-US'
-  # webgui_telegram:
-  #  use: true
-  #  token: '5951069517:AAHg8id5Qb6s2c271FjLuYpcFBgvwSL0FHY'
+    admin_username: 'example@test.com'
+    admin_password: '1234'
 
 db: 'web.sqlite'
 EOF
