@@ -178,7 +178,7 @@ if $INSTALL_DEP; then
     cd shadowsocks-manager
     npm i
     npm run build
-    SS_MANAGER_PATH = $(pwd)
+    SS_MANAGER_PATH=$(pwd)
 fi
 
 ###
@@ -337,7 +337,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=cd $SS_MANAGER_PATH && node server.js -c /root/.ssmgr/ssmgr-web.yml
+WorkingDirectory=$SS_MANAGER_PATH
+ExecStart=node server.js -c /root/.ssmgr/ssmgr-web.yml
 
 [Install]
 WantedBy=multi-user.target
