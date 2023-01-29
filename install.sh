@@ -26,6 +26,8 @@ USE_TELEGRAM=false
 TELEGRAM_TOKEN=INVALID
 
 USE_WEB=false
+ADMIN_USERNAME: 'example@test.com'
+ADMIN_PASSWORD: '1234'
 
 ###
 # read flags
@@ -54,8 +56,8 @@ EOF
 }
 
 TEMP=$(
-    getopt -o ish:p:a:k:m:H:P:A:K:t:w \
-        --long install,ss-server,server-host:,server-port:,server-address:,server-password:,encrypt-method:,manager-host:,manager-port:,manager-address:,manager-password:,telegram:,web,v2ray-version:,plugin:,ip:,help \
+    getopt -o ish:p:a:k:m:H:P:A:K:t:w:: \
+        --long install,ss-server,server-host:,server-port:,server-address:,server-password:,encrypt-method:,manager-host:,manager-port:,manager-address:,manager-password:,telegram:,web::,v2ray-version:,plugin:,ip:,help \
         -n 'javawrap' -- "$@"
 )
 
@@ -121,7 +123,9 @@ while true; do
         ;;
     -w | --web)
         USE_WEB=true
-        shift
+        ADMIN_USERNAME="$2"
+        ADMIN_PASSWORD="$3"
+        shift 3
         ;;
     --v2ray-version)
         V2RAY_VERSION="$2"
@@ -323,8 +327,8 @@ plugins:
     port: '3030'
     site: 'http://mywebsite.com'
     language: 'en-US'
-    admin_username: 'example@test.com'
-    admin_password: '1234'
+    admin_username: $ADMIN_USERNAME
+    admin_password: $ADMIN_PASSWORD
 
 db: 'web.sqlite'
 EOF
