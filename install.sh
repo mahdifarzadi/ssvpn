@@ -26,8 +26,8 @@ USE_TELEGRAM=false
 TELEGRAM_TOKEN=INVALID
 
 USE_WEB=false
-ADMIN_USERNAME: 'example@test.com'
-ADMIN_PASSWORD: '1234'
+ADMIN_USERNAME=example@test.com
+ADMIN_PASSWORD=1234
 
 ###
 # read flags
